@@ -15,6 +15,9 @@ def main():
     print(f"T1 - T0 = {td}")
     rtt = td // 2
     print(f"RTT = {rtt}")
-    synchronized_client_time = dt_object + timedelta(seconds=td)
+    synchronized_client_time = dt_object + timedelta(seconds=rtt)
     print(f"Synchronized time {synchronized_client_time.time()}")
-main()
+
+if __name__ == '__main__':
+    main()
+
