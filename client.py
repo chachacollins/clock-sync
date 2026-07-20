@@ -1,27 +1,43 @@
 #!/usr/bin/env python
 import socket
+import random
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
 def main():
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect(("localhost", 42069))
-    now = datetime.now() 
-    print(f"TO = {now.time()}")
-    date_string = client.recv(1024).decode()
-    parsed_time = datetime.strptime(date_string, "%H:%M:%S").time()
-    print(f"T1 = {parsed_time}")
-    dt_object = datetime.combine(now.date(), parsed_time)
-    td = int((abs(dt_object - now)).total_seconds())
-    print(f"T1 - T0 = {td}")
-    rtt = td // 2
-    print(f"RTT = {rtt}")
-    synchronized_client_time = dt_object + timedelta(seconds=rtt)
-    print(f"Synchronized time: {synchronized_client_time.time()}")
-    plot_cristian(now, dt_object, td, rtt, synchronized_client_time)
+    client.connect(("localhost", 8080))
 
-def plot_cristian(now, dt_object, td, rtt, synchronized_client_time):
+    offset = random.randint(-3600, 3600)
+    t0 = datetime.now() + timedelta(seconds=offset)
+
+    client.sendall(b"request")
+    date_string = client.recv(1024).decode()
+    t2 = datetime.now() + timedelta(seconds=offset)
+
+    server_time = datetime.strptime(date_string, "%H:%M:%S").time()
+    server_dt = datetime.combine(t0.date(), server_time)
+
+    rtt = (t2 - t0).total_seconds()
+    adjustment = (server_dt - t0).total_seconds() + rtt / 2
+    synchronized_time = t0 + timedelta(seconds=adjustment)
+
+    real_now = datetime.now()
+    sync_error = abs((synchronized_time - real_now).total_seconds())
+
+    print(f"Initial client clock (T0):       {t0.strftime('%H:%M:%S')}")
+    print(f"Server time (T1):                {server_dt.strftime('%H:%M:%S')}")
+    print(f"Request time (T0):               {t0.strftime('%H:%M:%S')}")
+    print(f"Response time (T2):              {t2.strftime('%H:%M:%S')}")
+    print(f"Round-trip delay (RTT):          {rtt:.1f}s")
+    print(f"Clock adjustment:                {adjustment:+.1f}s")
+    print(f"Final synchronized clock:        {synchronized_time.strftime('%H:%M:%S')}")
+    print(f"Synchronization error:           {sync_error:.1f}s")
+
+    # plot_cristian(t0, server_dt, rtt, synchronized_time)
+
+def plot_cristian(now, dt_object, rtt, synchronized_client_time):
     fig, axes = plt.subplots(1, 2, figsize=(16, 7))
     fig.suptitle("Cristian's Clock Synchronization Algorithm",
                  fontsize=16, fontweight='bold')
@@ -35,9 +51,10 @@ def plot_cristian(now, dt_object, td, rtt, synchronized_client_time):
 
     # Relative positions on timeline
     now_rel        = 0
-    dt_object_rel  = td          
-    rtt_rel        = rtt        
-    sync_rel       = td + rtt  
+    td             = (dt_object - now).total_seconds()
+    dt_object_rel  = td
+    rtt_rel        = rtt
+    sync_rel       = rtt
 
     x_max = max(dt_object_rel, sync_rel) + 2
 

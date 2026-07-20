@@ -1,0 +1,9 @@
+snippet:
+  exec:
+    custom:
+      python:
+        filename: "snippet.py"
+        environment:
+          PYTHONUNBUFFERED: "1"
+        commands:
+          - ["python3", "snippet.py"]

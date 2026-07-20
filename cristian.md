@@ -36,218 +36,104 @@ theme:
         light_orange: "FE8019"
 
 ---
-Cristian's Algorithm
+How the Algorithm Works.
 ---
-# Cristian's Algorithm
-```latex +render
-\[ \mathbb{N}\]
+1. **Request:** A client process P records its current local time as T₀ and sends a time request message to the server S.
+2. **Response:** The time server S receives the request, processes it, and replies with a message containing its own current clock time
+```latex +render +no_background
+\(T_{server}\).
 ```
 
+3. **Receipt:** The client P receives the response message and immediately records its local time as T₁.
+4. **Calculation:** The client calculates the total Round-Trip Time:
+```latex +render +no_background
+\(\text{RTT}=T_{1}-T_{0}\)
+```
+5. **Synchronization:** Assuming network delays are symmetrical (the request and response took equal time), the time taken for the response to travel back to the client is: 
+```latex +render +no_background
+\(\frac{\text{RTT}}{2}\). 
+```
+<!-- end_slide -->
+
+Finally The client updates its clock to:
+---
+```latex +render +no_background
+\(T_{\text{new}}=T_{server}+\frac{\text{RTT}}{2}\)
+```
 
 <!-- end_slide -->
 
-# Headers
+Activity 1: Basic Cristian's Algorithm
+---
 
-Each header type can be styled differently.
-
-## Subheaders
-
-### And more
+Demonstrates the core Cristian's Algorithm. The client starts with a random clock offset (-1 to +1 hour), sends a request to the server, receives the server's time, and computes the synchronized time.
 
 <!-- end_slide -->
 
-Code highlighting
+Activity 2: Packet Loss Simulation
+---
+Simulates packet loss at rates of 0%, 5%, 10%, and 20%. When a packet is lost, the client closes the connection, opens a new one, and retransmits (up to 5 retries per trial).
+
+<!-- end_slide -->
+
+Activity 3: Variable Server Processing Time
+---
+Tests how server processing delay affects synchronization accuracy. The server to delays responses by: 10 ms, 100 ms, 500 ms
+<!-- end_slide -->
+
+Activity 4: Variable Server Processing Time
 ---
 
-Highlight code in 50+ programming languages:
+Simulates clock drift by gradually adjusting the client's clock offset over time before synchronizing. Tests drift periods of 0, 30, 60, 120, and 300 seconds.
+<!-- end_slide -->
 
-```rust
-// Rust
-fn greet() -> &'static str {
-    "hi mom"
-}
-```
+Activity 5: Multiple Time Servers
+---
+Deploys two time servers with different processing delays and compares three server selection strategies.
 
-```python
-# Python
-def greet() -> str:
-    return "hi mom"
-```
+| Strategy     | Description                                                                             |
+| ------------ | --------------------------------------------------------------------------------------- |
+| Nearest      | Selects the server with the lowest RTT                                                  |
+| Least Loaded | Selects the server with the latest timestamp (most processing time = least queued work) |
+| Average      | Queries both servers and averages the results                                           |
+<!-- end_slide -->
 
+Berkeley's Algorithm
+---
+
+Berkeley algorithm is a distributed, internal method where a central coordinator polls nodes, calculates an average time to reach consensus, and adjusts clocks internally without needing an external reference.
+
+
+<!-- end_slide -->
+Cristian's Algorithm vs. Berkeley Algorithm
+---
+ 
+## Time Source
+ 
+- **Cristian's:** Synchronizes with a highly accurate external Time Server (e.g., UTC).
+- **Berkeley:** Assumes no single machine is perfectly accurate. Uses an average of all clocks in the network.
 <!-- pause -->
-
--------
-
-Code snippets can have different styles including no background:
-
-```cpp +no_background +line_numbers
-// C++
-string greet() {
-    return "hi mom";
-}
-```
-
+## Architecture
+ 
+- **Cristian's:** Client-server model.
+- **Berkeley:** Master-slave (Coordinator-follower) model.
+<!-- pause -->
+## Fault Tolerance
+ 
+- **Cristian's:** Low. If the single Time Server fails, the entire system cannot synchronize.
+- **Berkeley:** High. If the master fails, the system can elect a new master to continue synchronizing.
 <!-- end_slide -->
-
-Dynamic code highlighting
+## Accuracy
+ 
+- **Cristian's:** High. Synchronizes to real-world time (UTC).
+- **Berkeley:** Can drift from real-world time, but highly consistent internally, minimizing maximum clock drift between nodes.
+<!-- pause -->
+## Use Case
+ 
+- **Cristian's:** Systems requiring an accurate external time reference (e.g., specific databases, web servers).
+- **Berkeley:** Local Area Networks (LANs) / intranets with mutually trusting nodes that just need to remain strictly consistent with each other.
 ---
-
-Dynamically highlight different subsets of lines:
-
-```python {1-4|6-10|all} +line_numbers +exec
-#!/usr/bin/env python3
-
-from datetime import datetime
-import socket
-import threading
-
-def return_time(client_sock, addr):
-    now = datetime.now()
-    current_time = now.strftime("%H:%M:%S")
-    client_sock.sendall(current_time.encode())
-
-def main():
-    server_addr = 42069
-    server      = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server.bind(('localhost', server_addr))
-    server.listen(socket.SOMAXCONN)
-    print(f"Listening on localhost:{server_addr}")
-    while True:
-        client_sock, addr = server.accept()
-        print(f"\nConnection from {addr}")
-        client_thread = threading.Thread(target=return_time, args=(client_sock, addr))
-        client_thread.daemon = True
-        client_thread.start()
-main()
-```
-
 <!-- end_slide -->
-
-Client Code
----
-
-```python +exec
-import socket
-from datetime import datetime, timedelta
-
-def main():
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect(("localhost", 42069))
-    now = datetime.now() 
-    print(f"TO = {now.time()}")
-    date_string = client.recv(1024).decode()
-    parsed_time = datetime.strptime(date_string, "%H:%M:%S").time()
-    print(f"T1 = {parsed_time}")
-    dt_object = datetime.combine(now.date(), parsed_time)
-    td = int((abs(dt_object - now)).total_seconds())
-    print(f"T1 - T0 = {td}")
-    rtt = td // 2
-    print(f"RTT = {rtt}")
-    synchronized_client_time = dt_object + timedelta(seconds=td)
-    print(f"Synchronized time {synchronized_client_time.time()}")
-main()
-```
-
-<!-- end_slide -->
-
-Images
----
-
-Images and animated gifs are supported in terminals such as:
-
-* kitty
-* iterm2
-* wezterm
-* ghostty
-* foot
-* Any sixel enabled terminal
-
-<!-- column_layout: [1, 3, 1] -->
-
-<!-- column: 1 -->
-
-
-_Picture by Alexis Bailey / CC BY-NC 4.0_
-
-<!-- end_slide -->
-
-Column layouts
----
-
-<!-- column_layout: [7, 3] -->
-
-<!-- column: 0 -->
-
-Use column layouts to structure your presentation:
-
-* Define the number of columns.
-* Adjust column widths as needed.
-* Write content into every column.
-
-```rust
-fn potato() -> u32 {
-    42
-}
-```
-
-<!-- column: 1 -->
-
-
-<!-- reset_layout -->
-
----
-
-Layouts can be reset at any time.
-
-```python
-print("Hello world!")
-```
-
-<!-- end_slide -->
-
-Text formatting
----
-
-Text formatting works including:
-
-* **Bold text**.
-* _Italics_.
-* **_Bold and italic_**.
-* ~Strikethrough~.
-* `Inline code`.
-* Links [](https://example.com/)
-* <span style="color: red">Colored</span> text.
-* <span style="color: blue; background-color: black">Background color</span> can be changed too.
-
-<!-- end_slide -->
-
-More markdown
----
-
-Other markdown elements supported are:
-
-# Block quotes
-
-> Lorem ipsum dolor sit amet. Eos laudantium animi ut ipsam beataeet
-> et exercitationem deleniti et quia maiores a cumque enim et
-> aspernatur nesciunt sed adipisci quis.
-
-# Alerts
-
-> [!caution]
-> Github style alerts
-
-# Tables
-
-| Name   | Taste  |
-| ------ | ------ |
-| Potato | Great  |
-| Carrot | Yuck   |
-
-<!-- end_slide -->
-
-<!-- jump_to_middle -->
 
 The end
 ---
