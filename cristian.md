@@ -63,10 +63,17 @@ Finally The client updates its clock to:
 
 <!-- end_slide -->
 
-Activity 1: Basic Cristian's Algorithm
+Activity 0: Basic Cristian's Algorithm
 ---
 
 Demonstrates the core Cristian's Algorithm. The client starts with a random clock offset (-1 to +1 hour), sends a request to the server, receives the server's time, and computes the synchronized time.
+
+<!-- end_slide -->
+
+Activity 1: Synchronization Frequency Study
+---
+Perform synchronization every: 1 second, 5 seconds, 10 seconds, 30 seconds
+Compare synchronization accuracy and communication overhead.
 
 <!-- end_slide -->
 
@@ -96,6 +103,34 @@ Deploys two time servers with different processing delays and compares three ser
 | Nearest      | Selects the server with the lowest RTT                                                  |
 | Least Loaded | Selects the server with the latest timestamp (most processing time = least queued work) |
 | Average      | Queries both servers and averages the results                                           |
+<!-- end_slide -->
+
+Activity 6: Performance Analysis
+---
+
+| Metric | Source |
+|--------|--------|
+| Synchronization time | `(T2 - T0)` per trial |
+| Network traffic | Bytes sent/received per sync + `/proc/net/dev` |
+| CPU utilization | `/proc/stat` before and after trials |
+| Synchronization error | `abs(synchronized_time - real_time)` |
+| Throughput | Successful syncs per second |
+
+<!-- end_slide -->
+
+Activity 7: Enhanced Synchronization Strategy
+---
+**Multi-Server Best:** Queries all available servers and selects the response with the lowest synchronization error. Provides redundancy and better accuracy through selection.
+
+<!-- end_slide -->
+
+Limitations
+---
+- Accuracy is bounded by `RTT/2` (minimum possible error)
+- Asymmetric network paths degrade accuracy
+- Server processing time adds to RTT and increases uncertainty
+- No protection against faulty or malicious time servers
+
 <!-- end_slide -->
 
 Berkeley's Algorithm
